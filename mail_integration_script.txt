@@ -1,0 +1,39 @@
+function extractNameAndEmail(text) {
+  if (!text) {
+    return { name: '', email: '' };
+  }
+
+  const parts = text.split('<');
+  if (parts.length < 2) {
+    return { name: text.trim(), email: '' };
+  }
+
+  const name = parts[0].trim();
+  const email = parts[1].replace('>', '').trim();
+
+  return { name, email };
+}
+
+Logger.log(extractNameAndEmail(`Google <no-reply@accounts.google.com>`))
+
+function listEmails() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.clear(); // Clear existing content
+  sheet.appendRow(['Date', 'From Name', 'From Email Address', 'Subject', 'Body']); // Header row
+
+  var threads = GmailApp.getInboxThreads(0, 50); 
+  for (var i = 0; i < threads.length; i++) {
+    var messages = threads[i].getMessages();
+    for (var j = 0; j < messages.length; j++) {
+      var message = messages[j];
+      var date = message.getDate();
+      var fromInfo = extractNameAndEmail(message.getFrom()); // Get name and email as an object
+      var fromName = fromInfo.name; // Access name
+      var fromEmailAddress = fromInfo.email; // Access email
+      var subject = message.getSubject();
+      var body = message.getPlainBody();
+
+      sheet.appendRow([date, fromName, fromEmailAddress, subject, body]);
+    }
+  }
+}
